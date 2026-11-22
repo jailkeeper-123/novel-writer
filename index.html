@@ -17,6 +17,7 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1p
 #cnt{font:12px system-ui,sans-serif;color:var(--sub);white-space:nowrap}
 button,select{font:inherit;color:inherit}
 .ib{background:none;border:1px solid var(--ui);border-radius:8px;min-width:42px;height:40px;padding:0 10px;font:15px system-ui,sans-serif;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;margin:0 auto}
 .tb{background:none;border:1px solid var(--ui);border-radius:8px;padding:7px 12px;font:14px system-ui,sans-serif;cursor:pointer}
 button:focus-visible,#ed:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 #wrap{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start;overflow:auto}
@@ -60,13 +61,14 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
 <header>
   <input id="ti" placeholder="제목" aria-label="제목">
   <span id="cnt" title="눌러서 공백 포함/제외 전환">0자</span>
-  <button class="ib" id="gear" aria-label="설정" title="설정">⚙️</button>
+  <button class="ib" id="gear" aria-label="설정" title="설정"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
 </header>
 <div id="wrap"><div id="box"><div id="ed" contenteditable="true" role="textbox" aria-multiline="true" aria-label="본문" spellcheck="false" autocapitalize="off" data-ph="여기에 쓰세요"></div><div id="gd"><div id="gi"></div></div></div></div>
 <div id="panel">
   <h4>서식</h4>
-  <div class="row"><label>페이지</label><select id="pg"><option value="free">자유 (화면 가득)</option><option value="34">3:4 쪽</option><option value="169">9:16 쪽</option></select></div>
-  <div class="hint">3:4나 9:16을 고르면 그 비율의 쪽 모양으로 글을 쓰고, 선은 쪽이 바뀌는 자리예요.</div>
+  <div class="row"><label>페이지</label><select id="pg"><option value="free">자유 (화면 가득)</option><option value="34">3:4 쪽</option><option value="55">5:5 쪽 (정사각형)</option></select></div>
+  <div class="hint">3:4나 5:5를 고르면 그 비율의 쪽 모양으로 글을 쓰고, 점선은 쪽이 바뀌는 자리예요.</div>
+  <div class="row"><label>쪽 나누기</label><label style="width:auto;color:inherit"><input type="checkbox" id="keep"> 문단을 쪽 중간에서 자르지 않기</label></div>
     <div class="row"><label>글꼴</label><select id="ff"></select></div>
   <div class="row"><label>글자 크기</label><input type="range" id="fs" min="14" max="30" step="1"><output id="fso"></output></div>
   <div class="row"><label>줄 간격</label><input type="range" id="lh" min="1.3" max="2.8" step="0.1"><output id="lho"></output></div>
@@ -74,11 +76,13 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
   <div class="row"><label>문단 간격</label><input type="range" id="gap" min="0" max="1.5" step="0.1"><output id="gapo"></output></div>
   <div class="hint">줄 간격은 글이 길어 줄이 저절로 넘어갈 때의 간격이고, 문단 간격은 엔터로 문단을 나눌 때 더해지는 간격이에요(글자 크기의 배수).</div>
   <div class="row"><label>좌우 여백</label><input type="range" id="mx" min="0" max="60" step="2"><output id="mxo"></output></div>
+  <div class="row"><label>상하 여백</label><input type="range" id="my" min="0" max="60" step="2"><output id="myo"></output></div>
+  <div class="hint">쪽이 바뀌어도 위 여백은 1쪽과 2쪽이 같아요. 이미지 저장 결과도 똑같아요.</div>
   <div class="row"><label>들여쓰기</label><select id="ind"><option value="0">없음</option><option value="1">1칸</option><option value="2">2칸</option></select></div>
   <div class="row"><label>대사 줄</label><label style="width:auto;color:inherit"><input type="checkbox" id="indq"> 따옴표로 시작하면 들여쓰기 안 함</label></div>
   <div class="row"><button class="tb" id="indall">전체 문단에 들여쓰기 적용</button></div>
   <div class="row"><label>배경색</label><div class="sws" id="sws"></div></div>
-  <div class="row"><label>색상환</label><button class="tb" id="wt" aria-expanded="false">🎨 펼치기</button></div>
+  <div class="row"><label>색상환</label><button class="tb" id="wt" aria-expanded="false">펼치기</button></div>
   <div id="wbox" hidden>
     <div class="row"><div id="wheel"><canvas id="wc" width="220" height="220" aria-label="색상환"></canvas><i id="wk"></i></div></div>
     <div class="row"><label>밝기</label><input type="range" id="wv" min="0" max="100" step="1"></div>
@@ -89,11 +93,6 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
   <div class="row"><input type="file" id="ffile" accept=".ttf,.otf,.woff,.woff2" multiple></div>
   <div class="row"><button class="tb" id="fdel">선택한 글꼴 삭제</button></div>
   <div class="hint" id="fhint">폰에 받아 둔 글꼴 파일(ttf, otf, woff, woff2)을 한 번에 여러 개 골라도 돼요. 고른 글꼴은 이 기기에 보관돼요.</div>
-
-  <h4>파일 가져오기·내보내기</h4>
-  <div class="row"><input type="file" id="imp" accept=".txt,.md,.json,text/plain" multiple></div>
-  <div class="row"><button class="tb" id="ext">TXT로 내보내기</button><button class="tb" id="exj">백업(JSON) 내보내기</button></div>
-  <div class="hint">컴에서 쓰던 .txt 파일을 고르면 불러와요(윈도우 메모장 파일도 인식). 컴에서 이 페이지로 쓴 글은 TXT나 백업으로 내보낸 뒤 폰에서 가져오세요. 백업은 임시저장과 설정까지 함께 옮겨요.</div>
 
   <h4>임시저장</h4>
   <div class="row"><button class="tb" id="dsave">지금 글 임시저장</button><button class="tb" id="dnew">새 글 시작</button></div>
@@ -106,14 +105,13 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
 <div id="bar">
   <button class="ib" data-q='"'>" "</button>
   <button class="ib" data-q="'">' '</button>
-  <button class="ib" data-q="(">( )</button>
+  <button class="ib" data-t="♡" aria-label="하트">♡</button>
   <button class="ib" data-t="…">…</button>
   <button class="ib" data-t="—">—</button>
-  <button class="ib" id="in" aria-label="들여쓰기" title="들여쓰기 켜고 끄기">➡️</button>
-  <button class="ib" id="un" aria-label="되돌리기" title="되돌리기">↩️</button>
-  <button class="ib" id="re" aria-label="다시 실행" title="다시 실행">↪️</button>
-  <button class="ib" id="ds" aria-label="임시저장" title="임시저장">💾</button>
-  <button class="ib" id="cp2" aria-label="전체 복사" title="전체 복사">📋</button>
+  <button class="ib" id="un" aria-label="되돌리기" title="되돌리기"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+  <button class="ib" id="re" aria-label="다시 실행" title="다시 실행"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
+  <button class="ib" id="ds" aria-label="임시저장" title="임시저장"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg></button>
+  <button class="ib" id="cp2" aria-label="전체 복사" title="전체 복사"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="ov"><button class="tb" id="ovx">닫기</button><p>이미지를 길게 눌러 저장하세요.</p><div id="ovi"></div></div>
@@ -124,8 +122,9 @@ var ed=$('#ed'),ti=$('#ti'),panel=$('#panel');
 var CLOSE='"\'”’」』)]}》〉';
 var PRESETS=['#faf6ef','#ffffff','#eef1f4','#f1e4c8','#dfeadb','#1e1d1b','#000000'];
 var BASE=[['명조','"Noto Serif KR",serif'],['고딕','system-ui,"Noto Sans KR",sans-serif']];
-var S={ff:BASE[0][1],fs:18,lh:1.9,ls:0,bg:null,nl:false,pg:'free',gap:0,mx:18,ind:0,indq:true};
+var S={ff:BASE[0][1],fs:18,lh:1.9,ls:0,bg:null,nl:false,pg:'free',gap:0,mx:18,my:18,keep:true,ind:0,indq:true};
 var fonts=[];
+var IC={copy:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',check:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'};
 var DEF={title:'',text:''};
 
 function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove('on')},2200)}
@@ -147,7 +146,7 @@ function apply(){
   else{['--bg','--fg','--ui','--sub'].forEach(function(p){r.removeProperty(p)});}
   $('#ff').value=S.ff;$('#fs').value=S.fs;$('#fso').textContent=S.fs;
   $('#lh').value=S.lh;$('#lho').textContent=S.lh;$('#ls').value=S.ls;$('#lso').textContent=S.ls;
-  $('#nl').checked=S.nl;$('#pg').value=S.pg;$('#gap').value=S.gap;$('#gapo').textContent=S.gap;$('#mx').value=S.mx;$('#mxo').textContent=S.mx;$('#ind').value=S.ind;$('#indq').checked=S.indq;ed.style.setProperty('--gap',(S.gap*S.fs)+'px');applyPage();syncWheel();
+  $('#nl').checked=S.nl;if(S.pg!=='34'&&S.pg!=='55')S.pg='free';$('#pg').value=S.pg;$('#gap').value=S.gap;$('#gapo').textContent=S.gap;$('#mx').value=S.mx;$('#mxo').textContent=S.mx;$('#my').value=S.my;$('#myo').textContent=S.my;$('#keep').checked=S.keep;$('#ind').value=S.ind;$('#indq').checked=S.indq;ed.style.setProperty('--gap',(S.gap*S.fs)+'px');applyPage();syncWheel();
   [].forEach.call(document.querySelectorAll('.sw'),function(b){b.classList.toggle('cur',b.dataset.c===S.bg)});
 }
 
@@ -264,12 +263,11 @@ $('#bar').addEventListener('click',function(e){
   else if(b.dataset.t){ed.focus();ins(b.dataset.t);save()}
   else if(b.id==='un'){ed.focus();document.execCommand('undo');save()}
   else if(b.id==='re'){ed.focus();document.execCommand('redo');save()}
-  else if(b.id==='in'){toggleIndent()}
   else if(b.id==='ds'){toast(snap()?'임시저장했어요':'저장할 내용이 없어요')}
   else if(b.id==='cp2'){copyAll(b)}
 });
 function copyAll(b){
-  var t=(ti.value?ti.value+'\n\n':'')+ed.value,done=function(){b.textContent='✅';setTimeout(function(){b.textContent='📋'},1200)};
+  var t=(ti.value?ti.value+'\n\n':'')+ed.value,done=function(){b.innerHTML=IC.check;setTimeout(function(){b.innerHTML=IC.copy},1200)};
   try{navigator.clipboard.writeText(t).then(done,fb)}catch(e){fb()}
   function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}a.remove()}
 }
@@ -328,49 +326,13 @@ $('#fdel').onclick=function(){
   fdel(m[1]);fonts=fonts.filter(function(n){return n!==m[1]});S.ff=BASE[0][1];fontOpts();apply();save();toast('글꼴을 삭제했어요');
 };
 
-// ---------- 파일 가져오기 / 내보내기 ----------
-function dlSave(name,data,fallback){
-  var get=(window.claude&&claude.use)?claude.use('downloads'):Promise.resolve(null);
-  return get.then(function(dl){
-    if(!dl){try{navigator.clipboard.writeText(fallback).then(function(){toast('저장 기능이 없어 내용을 복사했어요')},function(){toast('이 환경에서는 저장할 수 없어요')})}catch(e){toast('이 환경에서는 저장할 수 없어요')}return}
-    return dl.save({filename:name,data:data}).then(function(){toast('저장했어요')},function(err){if(!err||err.code!=='declined')toast('저장하지 못했어요')});
-  });
+function plainDownload(name,data){
+  var u=URL.createObjectURL(data),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('저장했어요');
 }
-function fname(){return(ti.value.trim()||'소설').replace(/[\\/:*?"<>|]+/g,'_').slice(0,40)}
-$('#ext').onclick=function(){var t=(ti.value.trim()?ti.value.trim()+'\n\n':'')+ed.value;dlSave(fname()+'.txt','\uFEFF'+t,t)};
-$('#exj').onclick=function(){var j=JSON.stringify({v:1,title:ti.value,text:ed.value,s:S,drafts:drafts()});dlSave('소설-백업-'+new Date().toISOString().slice(0,10)+'.json',j,j)};
-function decode(buf){
-  try{return new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){}
-  try{return new TextDecoder('euc-kr').decode(buf)}catch(e){}
-  return new TextDecoder().decode(buf);
-}
-$('#imp').onchange=function(){
-  var files=[].slice.call(this.files||[]);this.value='';if(!files.length)return;
-  Promise.all(files.map(function(f){return new Promise(function(res,rej){var rd=new FileReader();rd.onload=function(){res({n:f.name,t:decode(rd.result)})};rd.onerror=rej;rd.readAsArrayBuffer(f)})})).then(function(list){
-    var js=list.filter(function(o){return/\.json$/i.test(o.n)}),tx=list.filter(function(o){return!/\.json$/i.test(o.n)}),msgs=[];
-    if(js.length){
-      try{
-        var d=JSON.parse(js[0].t);snap();
-        if(typeof d.text==='string'){ti.value=d.title||'';ed.value=d.text}
-        if(d.s){for(var k in S)if(k in d.s&&k!=='ff')S[k]=d.s[k]}
-        if(d.drafts&&d.drafts.length){var cur=drafts(),ids={};cur.forEach(function(z){ids[z.id]=1});d.drafts.forEach(function(z){if(z&&!ids[z.id])cur.push(z)});cur.sort(function(a,b){return b.id-a.id});putDrafts(cur)}
-        msgs.push('백업을 불러왔어요');
-      }catch(e){msgs.push('백업 파일을 읽지 못했어요')}
-    }
-    tx.forEach(function(o,i){
-      var stem=o.n.replace(/\.[^.]+$/,''),t=o.t.replace(/\r\n?/g,'\n'),m=t.split('\n');
-      if(m[0].trim()===stem.trim()){m.shift();if(m.length&&!m[0].trim())m.shift();t=m.join('\n')}
-      if(i===0&&!js.length){snap();ti.value=stem;ed.value=t}
-      else{var a=drafts();a.unshift({id:Date.now()+i,t:stem,x:t});putDrafts(a)}
-    });
-    if(tx.length)msgs.push(js.length?tx.length+'개 글 파일은 임시저장에 넣었어요':tx.length===1?'파일을 불러왔어요':'첫 파일을 불러오고 나머지 '+(tx.length-1)+'개는 임시저장에 넣었어요');
-    apply();save();renderDrafts();toast(msgs.join(' · '));
-  });
-};
-
 // ---------- 이미지로 저장 ----------
 function layout(){
-  var W=1080,ew=ed.offsetWidth||360,k=W/ew,P=S.mx*k,Py=18*k,H=Math.round(W*(S.pg==='34'?4/3:16/9)),fp=S.fs*k,lh=fp*S.lh,gap=S.gap*fp,max=W-P*2,avail=H-Py*2;
+  var W=1080,ew=ed.offsetWidth||360,k=W/ew,P=S.mx*k,Py=S.my*k,H=Math.round(W*ratio()),fp=S.fs*k,lh=fp*S.lh,gap=S.gap*fp,max=W-P*2,avail=H-Py*2;
   var c=document.createElement('canvas').getContext('2d');
   function wrapLines(str,font){
     var out=[];c.font=font;try{c.letterSpacing=(S.ls*fp)+'px'}catch(e){}
@@ -391,7 +353,11 @@ function layout(){
   var pages=[],cur=[],y=0;
   function place(t,h){if(cur.length&&y+lh>avail+0.5){pages.push(cur);cur=[];y=0}cur.push({t:t,h:h,y:y});y+=lh}
   if(ti.value.trim()){wrapLines(ti.value.trim(),'600 '+(fp*1.25)+'px '+S.ff).forEach(function(l){place(l,true)});place('',false)}
-  ed.value.split('\n').forEach(function(p){wrapLines(p,fp+'px '+S.ff).forEach(function(l){place(l,false)});y+=gap});
+  ed.value.split('\n').forEach(function(p){
+    var ls=wrapLines(p,fp+'px '+S.ff);
+    if(S.keep&&cur.length&&y+ls.length*lh>avail+0.5&&ls.length*lh<=avail){pages.push(cur);cur=[];y=0}
+    ls.forEach(function(l){place(l,false)});y+=gap;
+  });
   if(cur.length)pages.push(cur);
   return{pages:pages,W:W,H:H,P:P,Py:Py,fp:fp,lh:lh};
 }
@@ -415,9 +381,8 @@ $('#exp').onclick=function(){
   var get=(window.claude&&claude.use)?claude.use('downloads'):Promise.resolve(null);
   get.then(function(dl){
     if(!dl){
-      var box=$('#ovi');box.textContent='';
-      cvs.forEach(function(cv){var im=new Image();im.src=cv.toDataURL(mime,0.92);im.alt='페이지';box.appendChild(im)});
-      $('#ov').classList.add('on');return;
+      cvs.forEach(function(cv,i){setTimeout(function(){cv.toBlob(function(b){plainDownload(name+(cvs.length>1?'-'+(i+1):'')+'.'+ext,b)},mime,0.92)},i*500)});
+      return;
     }
     toast(cvs.length+'장을 저장해요');
     var chain=Promise.resolve();
@@ -467,38 +432,45 @@ wc.addEventListener('pointerup',function(){drag=false});
 wc.addEventListener('pointercancel',function(){drag=false});
 $('#wv').oninput=function(){hsv.v=this.value/100;drawWheel();S.bg=hsv2hex(hsv.h,hsv.s,hsv.v);drag=true;apply();drag=false;save()};
 
-$('#wt').onclick=function(){var b=$('#wbox');b.hidden=!b.hidden;this.textContent=b.hidden?'🎨 펼치기':'🎨 접기';this.setAttribute('aria-expanded',String(!b.hidden));if(!b.hidden){drawWheel();placeKnob()}};
+$('#wt').onclick=function(){var b=$('#wbox');b.hidden=!b.hidden;this.textContent=b.hidden?'펼치기':'접기';this.setAttribute('aria-expanded',String(!b.hidden));if(!b.hidden){drawWheel();placeKnob()}};
 
 // ---------- 페이지 모양 ----------
 var pageH=0;
+function ratio(){return S.pg==='34'?4/3:S.pg==='55'?1:16/9}
 function applyPage(){
   var w=$('#wrap'),bx=$('#box');
   if(S.pg==='free'){
     w.style.padding='0';bx.style.width='100%';bx.style.height='100%';bx.style.maxHeight='none';bx.style.boxShadow='none';
-    ed.style.padding='18px '+S.mx+'px 40px';pageH=0;
+    ed.style.padding=S.my+'px '+S.mx+'px 40px';pageH=0;
   }else{
     w.style.padding='10px';
-    var W=Math.max(200,Math.min(w.clientWidth-20,480)),Hh=Math.round(W*(S.pg==='34'?4/3:16/9));
+    var W=Math.max(200,Math.min(w.clientWidth-20,480)),Hh=Math.round(W*ratio());
     pageH=Hh;bx.style.width=W+'px';bx.style.height=Hh+'px';bx.style.maxHeight='100%';bx.style.boxShadow='0 0 0 1px var(--sub)';
-    ed.style.padding='18px '+S.mx+'px';
+    ed.style.padding=S.my+'px '+S.mx+'px';
   }
   guides();
 }
-// 쪽이 바뀌는 자리를 이미지 저장과 같은 계산으로 표시
+// 쪽이 바뀌는 자리를 이미지 저장과 같은 계산으로 나누고, 새 쪽 첫 문단에는 위 여백만큼 간격을 줌
 function guides(){
   var gi=$('#gi');gi.textContent='';
+  var ds=[].slice.call(ed.children);
+  ds.forEach(function(d){d.style.marginTop='';d.style.marginBottom=''});
   if(S.pg==='free'||!pageH)return;
-  var lp=S.fs*S.lh,gap=S.gap*S.fs,avail=pageH-36,y=ti.value.trim()?lp*2:0,pn=1;
-  [].forEach.call(ed.children,function(d){
-    var n=Math.max(1,Math.round(d.offsetHeight/lp));
+  var lp=S.fs*S.lh,gap=S.gap*S.fs,my=S.my,avail=pageH-my*2,y=ti.value.trim()?lp*2:0,pn=1,marks=[];
+  var ns=ds.map(function(d){return Math.max(1,Math.round(d.offsetHeight/lp))});
+  ds.forEach(function(d,j){
+    var n=ns[j];
+    if(S.keep&&y>0&&y+n*lp>avail+0.5&&n*lp<=avail){pn++;y=0;marks.push({j:j,i:0,pn:pn})}
     for(var i=0;i<n;i++){
-      if(y>0&&y+lp>avail+0.5){
-        pn++;y=0;
-        var m=document.createElement('i');m.style.top=(d.offsetTop+i*lp-(i?0:gap/2))+'px';m.setAttribute('data-p',pn+'쪽');gi.appendChild(m);
-      }
+      if(y>0&&y+lp>avail+0.5){pn++;y=0;marks.push({j:j,i:i,pn:pn})}
       y+=lp;
     }
     y+=gap;
+  });
+  marks.forEach(function(m){if(m.i===0&&m.j>0){ds[m.j].style.marginTop=(my*2)+'px';ds[m.j-1].style.marginBottom='0'}});
+  marks.forEach(function(m){
+    var d=ds[m.j],t=m.i===0?d.offsetTop-my:d.offsetTop+m.i*lp;
+    var el=document.createElement('i');el.style.top=t+'px';el.setAttribute('data-p',m.pn+'쪽');gi.appendChild(el);
   });
   gi.style.transform='translateY('+(-ed.scrollTop)+'px)';
 }
@@ -509,6 +481,8 @@ $('#gear').onclick=function(){panel.classList.toggle('on')};
 $('#pg').onchange=function(){S.pg=this.value;apply();save()};
 $('#gap').oninput=function(){S.gap=+this.value;apply();save()};
 $('#mx').oninput=function(){S.mx=+this.value;apply();save()};
+$('#my').oninput=function(){S.my=+this.value;apply();save()};
+$('#keep').onchange=function(){S.keep=this.checked;apply();save()};
 $('#ind').onchange=function(){S.ind=+this.value;save()};
 $('#indq').onchange=function(){S.indq=this.checked;save()};
 $('#indall').onclick=function(){
