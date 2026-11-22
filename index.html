@@ -47,9 +47,16 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
 .dr{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ui)}
 .dr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hint{color:var(--sub);font-size:13px;margin:4px 0}
-#wheel{position:relative;width:220px;height:220px}
-#wc{width:220px;height:220px;border-radius:50%;touch-action:none;display:block}
-#wk{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:3px solid #fff;box-shadow:0 0 0 1.5px #000;border-radius:50%;pointer-events:none}
+#wheel{position:relative;width:240px;height:240px;touch-action:none}
+#wc{width:240px;height:240px;display:block;touch-action:none}
+#wk,#wk2{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border:4px solid #e4e4ec;box-shadow:0 0 0 1px rgba(0,0,0,.45),inset 0 0 0 1px rgba(0,0,0,.35);border-radius:50%;pointer-events:none}
+.csr{display:flex;align-items:center;gap:8px;margin:12px 0}
+.csl{width:74px;flex:none;color:var(--sub)}
+.pm{width:34px;height:34px;flex:none;border-radius:50%;border:0;background:var(--fg);color:var(--bg);font:600 20px/1 system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+.cs{-webkit-appearance:none;appearance:none;flex:1;min-width:70px;height:14px;border-radius:7px;outline:none;border:1px solid var(--ui);margin:0}
+.cs::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.35);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.cs::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.35)}
+.hexi{width:104px;background:var(--bg);border:1px solid var(--ui);border-radius:8px;padding:6px 8px;font:14px system-ui,sans-serif;color:inherit;text-transform:uppercase}
 #toast{position:fixed;left:50%;top:112px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:10px;font:14px system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center;z-index:30}
 #toast.on{opacity:1}
 #ov{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 24px;display:none;font:14px system-ui,sans-serif}
@@ -84,8 +91,11 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
   <div class="row"><label>배경색</label><div class="sws" id="sws"></div></div>
   <div class="row"><label>색상환</label><button class="tb" id="wt" aria-expanded="false">펼치기</button></div>
   <div id="wbox" hidden>
-    <div class="row"><div id="wheel"><canvas id="wc" width="220" height="220" aria-label="색상환"></canvas><i id="wk"></i></div></div>
-    <div class="row"><label>밝기</label><input type="range" id="wv" min="0" max="100" step="1"></div>
+    <div class="row"><div id="wheel"><canvas id="wc" width="360" height="360" aria-label="색 고르기"></canvas><i id="wk"></i><i id="wk2"></i></div></div>
+    <div class="row"><label>색상 코드</label><input class="hexi" id="hex" maxlength="7" autocomplete="off" aria-label="색상 코드"></div>
+    <div class="csr"><span class="csl" id="hl"></span><button class="pm" data-k="h" data-d="-1" aria-label="색조 줄이기">−</button><input type="range" class="cs" id="hh" min="0" max="360" step="1" aria-label="색조"><button class="pm" data-k="h" data-d="1" aria-label="색조 늘리기">+</button></div>
+    <div class="csr"><span class="csl" id="sl"></span><button class="pm" data-k="s" data-d="-1" aria-label="채도 줄이기">−</button><input type="range" class="cs" id="ss" min="0" max="100" step="1" aria-label="채도"><button class="pm" data-k="s" data-d="1" aria-label="채도 늘리기">+</button></div>
+    <div class="csr"><span class="csl" id="vl"></span><button class="pm" data-k="v" data-d="-1" aria-label="명도 줄이기">−</button><input type="range" class="cs" id="vv" min="0" max="100" step="1" aria-label="명도"><button class="pm" data-k="v" data-d="1" aria-label="명도 늘리기">+</button></div>
   </div>
   <div class="row"><label>대사 완료</label><label style="width:auto;color:inherit"><input type="checkbox" id="nl"> 엔터로 나온 뒤 줄바꿈도 하기</label></div>
 
@@ -398,41 +408,90 @@ $('#exp').onclick=function(){
 };
 $('#ovx').onclick=function(){$('#ov').classList.remove('on')};
 
-// ---------- 색상환 ----------
-var hsv={h:0,s:0,v:1},wc=$('#wc'),wk=$('#wk'),WR=110,drag=false;
-function hsv2hex(h,s,v){var f=function(n){var k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};return'#'+[f(5),f(3),f(1)].map(function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)}).join('')}
+// ---------- 색 고르기 (색조 고리 + 채도/명도 마름모) ----------
+var hsv={h:0,s:0,v:1},wc=$('#wc'),CS=240,IS=360,K=IS/CS,RO=118,RI=88,HH=76/Math.SQRT2,drag=null,Q=Math.SQRT1_2;
+function hsv2rgb(h,s,v){var f=function(n){var k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};return[f(5),f(3),f(1)]}
+function hsv2hex(h,s,v){return'#'+hsv2rgb(h,s,v).map(function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)}).join('')}
 function hex2hsv(x){var n=parseInt(x.slice(1),16),r=(n>>16)/255,g=((n>>8)&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;
   if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}
   return{h:h,s:mx?d/mx:0,v:mx}}
+function cl(x){return Math.min(1,Math.max(0,x))}
 function drawWheel(){
-  var c=wc.getContext('2d'),im=c.createImageData(220,220),d=im.data,v=hsv.v;
-  for(var y=0;y<220;y++)for(var x=0;x<220;x++){
-    var dx=x-WR+.5,dy=y-WR+.5,r=Math.sqrt(dx*dx+dy*dy),i=(y*220+x)*4;
-    if(r>WR)continue;
-    var h=(Math.atan2(dy,dx)*180/Math.PI+360)%360,s=r/WR;
-    for(var j=0,N=[5,3,1];j<3;j++){var k=(N[j]+h/60)%6;d[i+j]=(v-v*s*Math.max(0,Math.min(k,4-k,1)))*255}
-    d[i+3]=255;
+  var c=wc.getContext('2d'),im=c.createImageData(IS,IS),d=im.data,half=IS/2,ro=RO*K,ri=RI*K,hh=HH*K;
+  for(var y=0;y<IS;y++)for(var x=0;x<IS;x++){
+    var dx=x+.5-half,dy=y+.5-half,r=Math.sqrt(dx*dx+dy*dy),i=(y*IS+x)*4,rgb=null,a=0;
+    if(r<=ro+1&&r>=ri-1){
+      a=cl(Math.min(ro-r+.5,r-ri+.5));
+      if(a>0)rgb=hsv2rgb((Math.atan2(-dy,dx)*180/Math.PI+360)%360,1,1);
+    }else{
+      var X=(dx+dy)*Q,Y=(dy-dx)*Q;
+      a=cl(Math.min(hh-Math.abs(X)+.5,hh-Math.abs(Y)+.5));
+      if(a>0)rgb=hsv2rgb(hsv.h,cl((X+hh)/(2*hh)),1-cl((Y+hh)/(2*hh)));
+    }
+    if(a>0){d[i]=rgb[0]*255;d[i+1]=rgb[1]*255;d[i+2]=rgb[2]*255;d[i+3]=a*255}
   }
   c.putImageData(im,0,0);
 }
-function placeKnob(){var a=hsv.h*Math.PI/180,r=hsv.s*WR;wk.style.left=(WR+Math.cos(a)*r)+'px';wk.style.top=(WR+Math.sin(a)*r)+'px'}
+function ui(){
+  var a=hsv.h*Math.PI/180,rm=(RO+RI)/2,c=CS/2,wk=$('#wk'),w2=$('#wk2');
+  wk.style.left=(c+Math.cos(a)*rm)+'px';wk.style.top=(c-Math.sin(a)*rm)+'px';
+  var X=-HH+2*HH*hsv.s,Y=-HH+2*HH*(1-hsv.v);
+  w2.style.left=(c+(X-Y)*Q)+'px';w2.style.top=(c+(X+Y)*Q)+'px';
+  $('#hex').value=hsv2hex(hsv.h,hsv.s,hsv.v).toUpperCase();
+  $('#hh').value=Math.round(hsv.h);$('#ss').value=Math.round(hsv.s*100);$('#vv').value=Math.round(hsv.v*100);
+  $('#hl').textContent='색조 '+Math.round(hsv.h)+'°';$('#sl').textContent='채도 '+Math.round(hsv.s*100)+'%';$('#vl').textContent='명도 '+Math.round(hsv.v*100)+'%';
+  $('#hh').style.background='linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)';
+  $('#ss').style.background='linear-gradient(to right,#fff,'+hsv2hex(hsv.h,1,1)+')';
+  $('#vv').style.background='linear-gradient(to right,#000,'+hsv2hex(hsv.h,hsv.s,1)+')';
+}
+function drawAll(){drawWheel();ui()}
 function syncWheel(){
   if(drag)return;
-  if(S.bg)hsv=hex2hsv(S.bg);
-  $('#wv').value=Math.round(hsv.v*100);drawWheel();placeKnob();
+  if(S.bg&&hsv2hex(hsv.h,hsv.s,hsv.v)!==S.bg)hsv=hex2hsv(S.bg);
+  if(!$('#wbox').hidden)drawWheel();
+  ui();
 }
+function commit(redraw){
+  S.bg=hsv2hex(hsv.h,hsv.s,hsv.v);
+  var was=drag;drag=drag||'x';apply();drag=was;
+  if(redraw)drawWheel();
+  ui();save();
+}
+function pt(e){var b=wc.getBoundingClientRect(),sc=CS/b.width;return{x:(e.clientX-b.left)*sc-CS/2,y:(e.clientY-b.top)*sc-CS/2}}
 function pick(e){
-  var b=wc.getBoundingClientRect(),sc=220/b.width,dx=(e.clientX-b.left-b.width/2)*sc,dy=(e.clientY-b.top-b.height/2)*sc;
-  hsv.h=(Math.atan2(dy,dx)*180/Math.PI+360)%360;hsv.s=Math.min(Math.sqrt(dx*dx+dy*dy),WR)/WR;
-  placeKnob();S.bg=hsv2hex(hsv.h,hsv.s,hsv.v);apply();save();
+  var p=pt(e);
+  if(drag==='h')hsv.h=(Math.atan2(-p.y,p.x)*180/Math.PI+360)%360;
+  else{var X=(p.x+p.y)*Q,Y=(p.y-p.x)*Q;hsv.s=cl((X+HH)/(2*HH));hsv.v=1-cl((Y+HH)/(2*HH))}
+  commit(drag==='h');
 }
-wc.addEventListener('pointerdown',function(e){drag=true;try{wc.setPointerCapture(e.pointerId)}catch(x){}pick(e)});
+wc.addEventListener('pointerdown',function(e){
+  var p=pt(e),r=Math.sqrt(p.x*p.x+p.y*p.y),X=(p.x+p.y)*Q,Y=(p.y-p.x)*Q;
+  if(Math.abs(X)<=HH+6&&Math.abs(Y)<=HH+6)drag='sv';
+  else if(r>=RI-8&&r<=RO+10)drag='h';
+  else return;
+  try{wc.setPointerCapture(e.pointerId)}catch(x){}
+  pick(e);
+});
 wc.addEventListener('pointermove',function(e){if(drag)pick(e)});
-wc.addEventListener('pointerup',function(){drag=false});
-wc.addEventListener('pointercancel',function(){drag=false});
-$('#wv').oninput=function(){hsv.v=this.value/100;drawWheel();S.bg=hsv2hex(hsv.h,hsv.s,hsv.v);drag=true;apply();drag=false;save()};
-
-$('#wt').onclick=function(){var b=$('#wbox');b.hidden=!b.hidden;this.textContent=b.hidden?'펼치기':'접기';this.setAttribute('aria-expanded',String(!b.hidden));if(!b.hidden){drawWheel();placeKnob()}};
+wc.addEventListener('pointerup',function(){drag=null});
+wc.addEventListener('pointercancel',function(){drag=null});
+function setK(k,v){
+  if(k==='h')hsv.h=Math.max(0,Math.min(360,v));
+  else if(k==='s')hsv.s=cl(v/100);
+  else hsv.v=cl(v/100);
+  commit(k==='h');
+}
+$('#hh').oninput=function(){setK('h',+this.value)};
+$('#ss').oninput=function(){setK('s',+this.value)};
+$('#vv').oninput=function(){setK('v',+this.value)};
+[].forEach.call(document.querySelectorAll('.pm'),function(b){
+  b.onclick=function(){var k=b.dataset.k,cur=k==='h'?hsv.h:k==='s'?hsv.s*100:hsv.v*100;setK(k,Math.round(cur)+(+b.dataset.d))};
+});
+$('#hex').onchange=function(){
+  var v=this.value.trim().replace('#','');
+  if(/^[0-9a-f]{6}$/i.test(v)){S.bg='#'+v.toLowerCase();apply();save()}else ui();
+};
+$('#wt').onclick=function(){var b=$('#wbox');b.hidden=!b.hidden;this.textContent=b.hidden?'펼치기':'접기';this.setAttribute('aria-expanded',String(!b.hidden));if(!b.hidden)drawAll()};
 
 // ---------- 페이지 모양 ----------
 var pageH=0;
