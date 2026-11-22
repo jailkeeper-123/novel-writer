@@ -61,6 +61,7 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
 #toast.on{opacity:1}
 #ov{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 24px;display:none;font:14px system-ui,sans-serif}
 #ov.on{display:block}
+#ovi>div{margin-bottom:18px}
 #ov img{width:100%;display:block;margin:10px 0;border:1px solid var(--ui)}
 </style>
 </head>
@@ -124,7 +125,7 @@ select,input[type=file]{background:var(--bg);border:1px solid var(--ui);border-r
   <button class="ib" id="cp2" aria-label="전체 복사" title="전체 복사"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
-<div id="ov"><button class="tb" id="ovx">닫기</button><p>이미지를 길게 눌러 저장하세요.</p><div id="ovi"></div></div>
+<div id="ov"><div class="row"><button class="tb" id="ovx">닫기</button><button class="tb" id="ovz">전체 ZIP으로 저장</button></div><p>쪽마다 따로 저장하거나, ZIP 파일 하나로 한 번에 저장할 수 있어요.</p><div id="ovi"></div></div>
 <script>
 (function(){
 var $=function(s){return document.querySelector(s)};
@@ -336,10 +337,6 @@ $('#fdel').onclick=function(){
   fdel(m[1]);fonts=fonts.filter(function(n){return n!==m[1]});S.ff=BASE[0][1];fontOpts();apply();save();toast('글꼴을 삭제했어요');
 };
 
-function plainDownload(name,data){
-  var u=URL.createObjectURL(data),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('저장했어요');
-}
 // ---------- 이미지로 저장 ----------
 function layout(){
   var W=1080,ew=ed.offsetWidth||360,k=W/ew,P=S.mx*k,Py=S.my*k,H=Math.round(W*ratio()),fp=S.fs*k,lh=fp*S.lh,gap=S.gap*fp,max=W-P*2,avail=H-Py*2;
@@ -383,27 +380,63 @@ function render(L,pg){
   });
   return cv;
 }
+// 저장: 한 번에 하나씩만 허용되므로 쪽이 여러 장이면 쪽별 저장 버튼이나 ZIP 한 파일로 저장
+function plainDownload(name,data){
+  var u=URL.createObjectURL(data),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('저장했어요');
+}
+function saveFile(name,blob){
+  var get=(window.claude&&claude.use)?claude.use('downloads'):Promise.resolve(null);
+  return get.then(function(dl){
+    if(!dl){plainDownload(name,blob);return}
+    return dl.save({filename:name,data:blob}).then(function(){toast('저장했어요')},function(err){
+      var c=err&&err.code;
+      toast(c==='declined'?'저장을 취소했어요':c==='rate_limited'?'잠시 뒤에 다시 눌러 주세요':c==='extension_not_enabled'?'이 화면에서는 이 형식을 저장할 수 없어요':'저장하지 못했어요');
+    });
+  });
+}
+var CRC=(function(){var t=[],c,n,k;for(n=0;n<256;n++){c=n;for(k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){var c=0xFFFFFFFF;for(var i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zip(files){
+  var enc=new TextEncoder(),parts=[],cen=[],off=0;
+  function u16(v){return[v&255,(v>>>8)&255]}
+  function u32(v){return[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]}
+  files.forEach(function(f){
+    var nm=enc.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    var lh=[0x50,0x4b,3,4].concat(u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(sz),u32(sz),u16(nm.length),u16(0));
+    parts.push(new Uint8Array(lh),nm,f.data);
+    var ch=[0x50,0x4b,1,2].concat(u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(sz),u32(sz),u16(nm.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off));
+    cen.push(new Uint8Array(ch),nm);
+    off+=lh.length+nm.length+sz;
+  });
+  var csz=0;cen.forEach(function(a){csz+=a.length});
+  var end=[0x50,0x4b,5,6].concat(u16(0),u16(0),u16(files.length),u16(files.length),u32(csz),u32(off),u16(0));
+  return new Blob(parts.concat(cen,[new Uint8Array(end)]),{type:'application/zip'});
+}
+function showPages(cvs,bs,names,name){
+  var box=$('#ovi');box.textContent='';
+  cvs.forEach(function(cv,i){
+    var w=document.createElement('div'),im=new Image();
+    im.src=cv.toDataURL('image/jpeg',0.6);im.alt=(i+1)+'쪽';
+    w.appendChild(im);w.appendChild(mk((i+1)+'쪽 저장',function(){saveFile(names[i],bs[i])}));
+    box.appendChild(w);
+  });
+  $('#ovz').onclick=function(){
+    Promise.all(bs.map(function(b){return b.arrayBuffer()})).then(function(bufs){
+      saveFile(name+'.zip',zip(bufs.map(function(ab,i){return{name:names[i],data:new Uint8Array(ab)}})));
+    });
+  };
+  $('#ov').classList.add('on');
+}
 $('#exp').onclick=function(){
   if(!ed.value.trim()){toast('저장할 글이 없어요');return}
   var ext=$('#fmt').value,mime=ext==='jpg'?'image/jpeg':'image/png';
-  var L=layout(),cvs=L.pages.map(function(p){return render(L,p)});
-  var name=(ti.value.trim()||'소설').replace(/[\\/:*?"<>|]+/g,'_').slice(0,40);
-  var get=(window.claude&&claude.use)?claude.use('downloads'):Promise.resolve(null);
-  get.then(function(dl){
-    if(!dl){
-      cvs.forEach(function(cv,i){setTimeout(function(){cv.toBlob(function(b){plainDownload(name+(cvs.length>1?'-'+(i+1):'')+'.'+ext,b)},mime,0.92)},i*500)});
-      return;
-    }
-    toast(cvs.length+'장을 저장해요');
-    var chain=Promise.resolve();
-    cvs.forEach(function(cv,i){
-      chain=chain.then(function(){
-        return new Promise(function(res){cv.toBlob(res,mime,0.92)}).then(function(b){
-          return dl.save({filename:name+(cvs.length>1?'-'+(i+1):'')+'.'+ext,data:b});
-        });
-      });
-    });
-    return chain.then(function(){toast('저장했어요')},function(err){if(!err||err.code!=='declined')toast('저장하지 못했어요');});
+  var L=layout(),name=(ti.value.trim()||'소설').replace(/[\\/:*?"<>|]+/g,'_').slice(0,40);
+  var cvs=L.pages.map(function(pg){return render(L,pg)});
+  Promise.all(cvs.map(function(cv){return new Promise(function(res){cv.toBlob(res,mime,0.92)})})).then(function(bs){
+    var names=bs.map(function(b,i){return name+(bs.length>1?'-'+(i+1):'')+'.'+ext});
+    if(bs.length===1)saveFile(names[0],bs[0]);
+    else showPages(cvs,bs,names,name);
   });
 };
 $('#ovx').onclick=function(){$('#ov').classList.remove('on')};
